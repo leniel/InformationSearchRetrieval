@@ -1,0 +1,28 @@
+The vectorial model was serialized using Python's Pickle module.
+https://docs.python.org/3/library/pickle.html
+
+The serialized object was generated using the indexer module:
+
+class indexer:
+
+    def __init__(self, terms, docs, matrix):
+        self.terms = terms
+        self.documents = docs
+        self.matrix = matrix
+
+Where:
+
+terms  = terms array [ the term at index 0 corresponds to the matrix row at index 0 ]
+docs   = docs array [ doc at index 0 corresponds to matrix column at index 0 ]
+matrix = vectorial model matrix [ lines maps to terms and columns maps to documents ]
+
+Sample:
+
+         doc 1  doc 2  doc 3
+term 1   x      x      x
+term 2   x      x      x
+term 3   x      x      x
+
+Each matrix cell has its weight calculated using TF-IDF (Term Frequency–Inverse Document Frequency) numerical statistic.
+
+https://en.wikipedia.org/wiki/Tf%E2%80%93idf
