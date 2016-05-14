@@ -1,3 +1,6 @@
+indexer.py
+==========
+
 The vectorial model was serialized using Python's Pickle module.
 https://docs.python.org/3/library/pickle.html
 
@@ -26,3 +29,11 @@ term 3   x      x      x
 Each matrix cell has its weight calculated using TF-IDF (Term Frequency–Inverse Document Frequency) numerical statistic.
 
 https://en.wikipedia.org/wiki/Tf%E2%80%93idf
+
+search_engine.py
+================
+
+Cosine distance was used to calculate the similarity for each term/document vector given a search vector
+spatial.distance.cosine from Python scipy library computes the distance, not the similarity.
+We must subtract the value from 1 to get the similarity.
+Similarity = 1 means both vectors are equal, that is, the greater the similarity the best is the match.

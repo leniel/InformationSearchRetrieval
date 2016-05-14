@@ -17,3 +17,7 @@ query_processor.wait()
 cmd = ['python3 modules/search_engine.py']
 search_engine = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 search_engine.wait()
+
+cmd = ['python3 modules/results_comparer.py']
+results_comparer = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+results_comparer.wait()

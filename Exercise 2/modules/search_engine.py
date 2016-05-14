@@ -9,11 +9,11 @@ class indexer:
         self.documents = docs
         self.matrix = matrix
 
-class queryNumber_queryText:
+class query:
 
-    def __init__(self,queryNumber, queryText):
-        self.queryNumber = queryNumber
-        self.queryText = queryText
+    def __init__(self, query_number, query_text):
+        self.query_number = query_number
+        self.query_text = query_text
 
 class document_similarity:
 
@@ -21,14 +21,14 @@ class document_similarity:
         self.document = document
         self.similarity = similarity
 
-    def add_ranking(self, ranking):
-        self.ranking = ranking
+    def add_rank(self, rank):
+        self.rank = rank
 
-class query_result:
+class search_result:
 
-    def __init__(self, queryNumber, results):
-        self.queryNumber = queryNumber
-        self.results = results
+    def __init__(self, query_number, result):
+        self.query_number = query_number
+        self.result = result
 
 def main():
 
@@ -53,9 +53,9 @@ def main():
     logger.info("Search Engine started...")
 
     queries = []
-    queries_results = []
+    search_results = []
 
-    # Reading Config file settings
+    # Reading SE Config file settings
     configPath = os.path.join(path, '../config/SE.cfg')
     config = configparser.ConfigParser()
     config.readfp(open(configPath))
@@ -65,6 +65,14 @@ def main():
     model = config.get("Config", "MODEL")
     queries_csv = config.get("Config", "QUERIES")
     results_csv = config.get("Config","RESULTS")
+    
+    # Reading IIG Config file settings
+    configPath = os.path.join(path, '../config/IIG.cfg')
+    config = configparser.ConfigParser()
+    config.readfp(open(configPath))
+    
+    # Used to assing appropriate name to the generated .CSV file
+    stemmer = config.getboolean('Config', 'STEMMER') # Stemmer config can be True or False
 
     begin_time = time.perf_counter()
 
@@ -81,70 +89,89 @@ def main():
          spamreader = csv.reader(csv_file, delimiter=';', quotechar='|')
          
          for row in spamreader:
-             queries.append(queryNumber_queryText(row[0], row[1]))
+             queries.append(query(row[0], row[1]))
 
     logger.info("Calculating similarity distance")
 
     # Similarity calculation...
-    for query in queries:
+    for q in queries:
     
-        text = query.queryText
-        text = text.split()
+        # Getting query words/tokens
+        text = q.query_text.split()
 
+        # Creating a search vector as bigger as the number of terms indexed for the corpus database
         search_vector = numpy.zeros([len(indexer.terms)])
         
         for word in text:
         
             if word in indexer.terms:
-               search_vector[indexer.terms.index(word)] = 1
+               search_vector[indexer.terms.index(word)] = 1 # Each word found has weight = 1
 
-        results = []
+        docs_similarities = []
 
         i = 0
         
-        for column in indexer.matrix.T:
+        # Matrix rows = Terms
+        # Matrix rows = Docs
+        # For each column\document vector in the matrix...
+        for document_vector in indexer.matrix.T:
         
-            results.append(document_similarity(indexer.documents[i], (spatial.distance.cosine(search_vector, column))))
+            ''' Calculates the similarity using Cosine distance for each term/document vector given a search vector
+            # spatial.distance.cosine computes the distance, not the similarity.
+            # We must subtract the value from 1 to get the similarity.
+            A similarity = 1 means both vectors are equal. '''
+            similarity = 1 - spatial.distance.cosine(search_vector, document_vector)
+         
+            docs_similarities.append(document_similarity(indexer.documents[i], similarity))
             
             i += 1
 
-        results.sort(key=lambda x: x.similarity, reverse=False)
+        # Sorting by similarity: the greater the similarity the best is the match
+        docs_similarities.sort(key = lambda x: x.similarity, reverse = True)
 
         i = 0
         
-        for result in results:
+        for ds in docs_similarities:
         
-            if(result.similarity > 0):
-              result.add_ranking(i)
+            # Assigning a rank to the document
+            if(ds.similarity > 0 and ds.similarity <= 1):
+              ds.add_rank(i)
             else:
-                 result.add_ranking(-1)
+                 ds.add_rank(-1) # document does not satisfy the query and as such won't be ranked
             
-            i+= 1
+            i+=
             
-        a = query_result(query.queryNumber, results)
-        queries_results.append(a)
+        sr = search_result(q.query_number, docs_similarities)
+        
+        search_results.append(sr)
 
     end_time = time.perf_counter()
     total_time = end_time - begin_time
 
-    logger.info("Search generated " + str(len(queries_results) / total_time) + " queries per second")
+    logger.info("Search Engine processed " + str(len(search_results) / total_time) + " queries per second")
 
-    logger.info("Writing to CSV file: " + results_csv)
+    # Using Python ternary operator to assing appropriate name to the CSV file based on the use of Potter Stemmer
+    results_CSV_name = (results_csv + "_with_stemmer" if stemmer else results_csv + "_without_stemmer") +  ".csv"
 
-    with open(os.path.join(path, "../output", results_csv), 'w', newline='') as csv_file:
-        spamwriter = csv.writer(csv_file, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    logger.info("Potter Stemmer = %s", stemmer)
+        
+    logger.info("Writing to CSV file: " + results_CSV_name)
 
-        for result in queries_results:
+    # Writing to the output file
+    with open(os.path.join(path, "../output", results_CSV_name), 'w', newline='') as csv_file:
+         writer = csv.writer(csv_file, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-            ordered_pairs = '['
+         for sr in search_results:
 
-            for result_from_query in result.results:
-                if(result_from_query.ranking != -1):
-                    ordered_pairs += "(" + str(result_from_query.ranking) + "," + str(result_from_query.document) +"," + str(result_from_query.similarity )+ "), "
+             ordered_pairs = '['
 
-            ordered_pairs = ordered_pairs[:-2]
-            ordered_pairs += ']'
-            spamwriter.writerow([result.queryNumber,  ordered_pairs ])
+             for result in sr.result:
+                 if(result.rank != -1):
+                   ordered_pairs += "(" + str(result.rank) + "," + str(result.document) +"," + str(result.similarity)+ "), "
+
+             ordered_pairs += ']'
+             
+             writer.writerow([sr.query_number, ordered_pairs])
             
     logger.info('Search Engine finished')
 

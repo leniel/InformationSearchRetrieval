@@ -1,13 +1,13 @@
 '''
     Author: Leniel Macaferi
-    Date created: 4/30/2016
+    Date created: 5/6/2016
     Python Version: 3.5
 '''
 
 import configparser, os, logging, xml.etree.ElementTree as ET, nltk, csv, sys
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from nltk.stem.porter import * # Porter Stmmer from NLTK
+from nltk.stem.porter import * # Porter Stemmer from NLTK
 
 path = os.path.dirname(__file__)
 
@@ -41,7 +41,9 @@ read = config.get('Config', 'READ')
 write = config.get('Config', 'WRITE')
 stemmer = config.getboolean('Config', 'STEMMER') # Stemmer config can be True or False
 
-logger.info('Finished reading IIG config settings... read: %s, write: %s', read, write)
+logger.info("Potter Stemmer = %s", stemmer)
+
+logger.info("Finished reading IIG config settings... read: %s, write: %s", read, write)
 
 files = read.split(',')
 
@@ -50,42 +52,42 @@ for i, file in enumerate(files):
 
 dictionary = {}
 allwords = []
-stopwords = stopwords.words("english")
+english_stopwords = stopwords.words("english")
 
 # Reading each file's records...
 for file in files:
 
     with open(os.path.join(path, "../../" + database_dir, file)) as f:
     
-         root = ET.parse(f).getroot()
-         
-         # Extracting record information
-         for child in root.iter('RECORD'):
-         
-             recordNum = int(child.find('RECORDNUM').text.strip())
-             text = None
-             
-             if(child.find('ABSTRACT') is not None):
-               text = child.find('ABSTRACT').text.upper()
-             elif(child.find('EXTRACT') is not None):
-               text = child.find('EXTRACT').text.upper()
-             else:
-               text = ""
-               
-             # Using NLTK to tokenize the text  
-             tokenized = word_tokenize(text)
-             
-             # Removing stop words from text
-             tokens = [t for t in tokenized if t not in stopwords]
-             
-             # Keeping only alphanumerical
-             words = [t for t in tokens if t.isalpha()]
+        root = ET.parse(f).getroot()
+        
+        # Extracting record information
+        for child in root.iter('RECORD'):
+        
+            recordNum = int(child.find('RECORDNUM').text.strip())
+            text = None
+            
+            if(child.find('ABSTRACT') is not None):
+                text = child.find('ABSTRACT').text.upper()
+            elif(child.find('EXTRACT') is not None):
+                text = child.find('EXTRACT').text.upper()
+            else:
+                text = ""
+            
+            # Using NLTK to tokenize the text  
+            tokenized = word_tokenize(text)
+            
+            # Removing stop words from text
+            tokens = [t for t in tokenized if t not in english_stopwords]
+            
+            # Keeping only alphanumerical
+            words = [t for t in tokens if t.isalpha()]
                         
-             # Keep a dictionary with every Record and its associated terms\tokens\words  
-             dictionary[recordNum] = words
-             
-             # Add this record's terms to the global terms list
-             allwords.extend(words)
+            # Keep a dictionary with every Record and its associated terms\tokens\words  
+            dictionary[recordNum] = words
+            
+            # Add this record's terms to the global terms list
+            allwords.extend(words)
             
 # Removing duplicates 
 words = list(set(allwords))
@@ -94,14 +96,14 @@ logger.info('Total Words\Tokens extracted from corpus = %s', len(words))
 
 # If stemmer is True in the configuration file...
 if stemmer is True:
+    porter = PorterStemmer() # Instantiating Porter Stemmer from NLTK
 
-   porter = PorterStemmer() # Instantiating Porter Stemmer from NLTK
-  
-   stemmed = [porter.stem(word) for word in words]
-  
-   words = sorted(stemmed)
+    stemmed = [porter.stem(word) for word in words]
+
+    words = sorted(stemmed)    
+    
 else:
-   words = sorted(words)
+    words = sorted(words)
 
 result = {}
 
@@ -115,21 +117,21 @@ for w in words:
         count = text.count(w)
     
         if count > 0:
-           # Adding the same record as many times the word appears in that record
-           for i in range(count):
-               wordInRecords.append(record)       
+            # Adding the same record as many times the word appears in that record
+            for i in range(count):
+                wordInRecords.append(record)       
     
     # Add to the result dictionary: the word as key and the list of records where it appears as value    
     result[w] = wordInRecords
 
 # Create the output file
 with open(os.path.join(path, "../output", write), 'w') as csv_file:
-     
-     writer = csv.writer(csv_file, delimiter=';')
-     
-     for w, records in sorted(result.items()):
+    
+    writer = csv.writer(csv_file, delimiter=';')
+    
+    for w, records in sorted(result.items()):
         
-         writer.writerow([w, records])
+        writer.writerow([w, records])
 
 logger.info('Finished writing Inverted Index CSV file with #%s terms', len(result.items()))
 

@@ -57,7 +57,7 @@ def main():
     
     logger.info("Query Processor started...")
 
-    # Reading Config file settings
+    # Reading QP Config file settings
     config = configparser.RawConfigParser(strict=False, dict_type=MultiOrderedDict)
 
     logger.info("Reading QP.cfg")
@@ -65,9 +65,9 @@ def main():
     config.read([os.path.join(path, '../config/QP.cfg')])
     
     database_dir = config.get('Config', 'DATABASE_DIR')
-    read = config.get("Config", "READ");
-    queries = config.get("Config", "QUERIES");
-    expected = config.get("Config", "EXPECTED");
+    read = config.get("Config", "READ")
+    queries = config.get("Config", "QUERIES")
+    expected = config.get("Config", "EXPECTED")
 
     f = codecs.open(os.path.join(path,   "../../" + database_dir[0], 'cfcquery-2.dtd'))
     dtd = ET.DTD(f)
@@ -104,22 +104,22 @@ def main():
               record_list = q.getElementsByTagName('Records')
                 
               for r in record_list:
-                  item_votes_list = []
+                  doc_votes_list = []
                   query_list = r.getElementsByTagName('Item')
                     
                   for i in query_list:
                       item_document = i.firstChild.nodeValue
                       score = i.getAttribute("score")
-                      item_votes = 0
+                      doc_votes = 0
                         
                       for s in range(len(score)):
                         
                           if(score[s]) != '0':
-                            item_votes += 1
+                            doc_votes += 1
                         
-                      item_votes_list.append((int(item_document),item_votes))
+                      doc_votes_list.append((int(item_document), doc_votes))
                         
-              row_expected.append(querynum_item_vote_list(querynum,item_votes_list))
+              row_expected.append(querynum_item_vote_list(querynum, doc_votes_list))
         else:
              logger.info(input + " XML file didn't pass DTD validation")
 
@@ -129,15 +129,15 @@ def main():
     total_time = end_time - begin_time
 
     logger.info("Inverted list generated " + str(len(read) / total_time) + " documents per second")
-    
-    logger.info("Writing to CSV file")
 
     with open(os.path.join(path, "../output", queries[0]), 'w', newline='') as csvfile:
          spamwriter = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         
          for row in row_query:
              spamwriter.writerow([row.querynum,row.querytext])
-
+            
+    logger.info("Writing to CSV file: " + expected[0])
+        
     with open(os.path.join(path, "../output", expected[0]), 'w', newline='') as csvfile:
          spamwriter = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
          
