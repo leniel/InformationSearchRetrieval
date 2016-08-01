@@ -1,4 +1,5 @@
 Dilma Rousseff's Impeachment Analysis
+=====================================
 
 1 - Unzip the file DilmaImpeachmentAnalysis.zip
 
@@ -7,11 +8,11 @@ https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx
 
 3 - After installing Visual Studio, open the file DilmaImpeachmentAnalysis.sln that is inside the folder DilmaImpeachmentAnalysis. This will open the solution in Visual Studio.
 
-4 - Open the file Program.cs in Visual Studio’s Solution Explorer. In the Main function, change the path to  the PDF file EV1704161400.pdf which contains the transcription of all deputies' speeches.
+4 - Open the file Program.cs in Visual Studio’s Solution Explorer. In the Main function, change the path to the PDF file EV1704161400.pdf which contains the transcription of all deputies' speeches.
 
 var pdfText = ExtractTextFromPdf(@"Y:\Dev\InformationSearchRetrieval\Paper\EV1704161400.pdf");
 
-* the PDF file is included in the root of the zipped file.
+* the PDF file called EV1704161400.pdf is included in the root of the zipped file.
 
 5 - To run the program, click the green play\Start button in Visual Studio's toolbar.
 
@@ -19,3 +20,14 @@ var pdfText = ExtractTextFromPdf(@"Y:\Dev\InformationSearchRetrieval\Paper\EV170
 /Users/leniel/Dev/InformationSearchRetrieval/Paper/DilmaImpeachmentAnalysis/DilmaImpeachmentAnalysis/bin/Debug
 
 * Your path may vary depending where you extracted the .zip file but the result will be in Visual Studio solution’s bin/Debug folder.
+
+#######
+
+KNIME
+
+1 - Download KNIME at
+https://www.knime.org/downloads/overview
+
+2 - KNIME's Text Processing module must be installed. To do so, click the File menu, then select Install Knime Extensions. Search for Knime Labs Extensions => Text Processing.
+
+2 - To open the Tag Cloud workflow we developed, click the File menu again. Select Import KNIME Workflow... In Source, browse to the archive file named KNIME workflow.zip provided in this repository.
