@@ -30,4 +30,4 @@ https://www.knime.org/downloads/overview
 
 2 - KNIME's Text Processing module must be installed. To do so, click the File menu, then select Install Knime Extensions. Search for Knime Labs Extensions => Text Processing.
 
-2 - To open the Tag Cloud workflow we developed, click the File menu again. Select Import KNIME Workflow... In Source, browse to the archive file named KNIME workflow.zip provided in this repository.
+3 - To open the Tag Cloud workflow we developed, click the File menu again. Select Import KNIME Workflow... In Source, browse to the archive file named KNIME workflow.zip provided in this repository.
